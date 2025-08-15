@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ClerkProvider } from '@clerk/nextjs'
+import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -22,11 +22,13 @@ export default function RootLayout({ children }) {
   return (
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-      afterSignInUrl="/dashboard"
-      afterSignUpUrl="/dashboard"
+      fallbackRedirectUrl="/dashboard"
     >
       <html lang="en">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          suppressHydrationWarning={true}
+        >
           <Toaster />
           {children}
         </body>

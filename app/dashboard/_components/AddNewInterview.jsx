@@ -78,7 +78,7 @@ const onSubmit = async (e) => {
 
     if (resp && resp[0]?.mockId) {
       setOpenDialog(false);
-      router.push("/dashboard/interview" + resp[0]?.mockId);
+      router.push("/dashboard/interview/" + resp[0]?.mockId);
     } else {
       alert("Error: Failed to save interview to database.");
     }
