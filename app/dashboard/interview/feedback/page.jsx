@@ -2,7 +2,7 @@
 import { UserAnswer } from '@/utils/schema'
 import React, { useEffect, useState } from 'react'
 import { eq } from 'drizzle-orm';
-import React from 'react'
+
 import { index } from 'drizzle-orm/mysql-core'
 import {
   Collapsible,

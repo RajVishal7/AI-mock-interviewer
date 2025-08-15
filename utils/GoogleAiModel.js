@@ -1,61 +1,68 @@
-// ✅ To run this code, install dependencies:
-// npm install @google/genai mime dotenv
+// Groq OpenAI Chat Session - Replacing Google GenAI
+import OpenAI from "openai";
 
-const { GoogleGenAI } = require('@google/genai');
-require('dotenv').config(); // Load NEXT_PUBLIC_GEMINI_API_KEY from .env
-
-console.log("Gemini API Key:", process.env.NEXT_PUBLIC_GEMINI_API_KEY);
-
-// ✅ Initialize Gemini client
-const genAI = new GoogleGenAI({
+// Initialize Groq OpenAI client
+const openai = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",
 });
 
+// Chat Session class to maintain conversation context
+class ChatSession {
+  constructor() {
+    this.messages = [];
+  }
 
-// ✅ Get the model
-const model = genAI.getGenerativeModel({ model: 'gemini-2.5-pro' });
+  async sendMessage(prompt) {
+    try {
+      // Add user message to conversation history
+      this.messages.push({
+        role: "user",
+        content: prompt,
+      });
 
-// ✅ Generation & safety configs
-const generationConfig = {
-  temperature: 0.7,
-  topK: 1,
-  topP: 1,
-  maxOutputTokens: 2048,
-};
+      const result = await openai.chat.completions.create({
+        model: "llama3-70b-8192",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a helpful AI assistant that provides accurate and detailed responses.",
+          },
+          ...this.messages,
+        ],
+        temperature: 0.7,
+        max_tokens: 2048,
+      });
 
-const safetySettings = [
-  {
-    category: 'HARM_CATEGORY_HARASSMENT',
-    threshold: 1,
-  },
-  {
-    category: 'HARM_CATEGORY_HATE_SPEECH',
-    threshold: 1,
-  },
-];
+      const response = result.choices[0]?.message?.content || "";
 
-// ✅ Start chat session
-const chatSession = model.startChat({
-  generationConfig,
-  safetySettings,
-  history: [],
-});
+      // Add assistant response to conversation history
+      this.messages.push({
+        role: "assistant",
+        content: response,
+      });
 
-// ✅ Main async function
-async function run() {
-  try {
-    const result = await chatSession.sendMessage(
-      'Give me 3 Node.js interview questions with answers in JSON format.'
-    );
+      // Return response in a format compatible with previous GenAI usage
+      return {
+        response: {
+          text: () => response,
+        },
+      };
+    } catch (error) {
+      console.error("Groq API Error:", error);
+      throw error;
+    }
+  }
 
-    console.log('\n Gemini Response:\n');
-    console.log(result.response.text());
-  } catch (err) {
-    console.error(' Error occurred:', err.message || err);
+  // Clear conversation history
+  clearHistory() {
+    this.messages = [];
   }
 }
 
-run();
+// Create and export chat session instance
+export const chatSession = new ChatSession();
 
-// ✅ Exporting the chat session (optional for reuse)
+// For CommonJS compatibility
 module.exports = { chatSession };
